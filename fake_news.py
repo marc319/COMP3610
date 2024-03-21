@@ -14,7 +14,7 @@ def read_dataframe(tsv_file: str) -> pd.DataFrame:
     data.columns = [
         'id',                # Column 1: the ID of the statement ([ID].json).
         'label',            
-        'statement',         
+        'text',         
         'subjects',          
         'speaker',           
         'speaker_job_title', 
@@ -41,12 +41,8 @@ data['label'] = data['label'].str.lower()
 data['label'] = data['label'].str.replace(r'[^\w\s]', '')
 data['label'] = data['label'].str.replace(r'\s+', ' ')
 
-vectorizer = TfidfVectorizer()
-X = vectorizer.fit_transform(data['text'])
-y = data['label']
 
-# Split the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# Split the data into training and testing sets- is already split into files: train, test, valid
 
 # Define the model
 model = Pipeline([
