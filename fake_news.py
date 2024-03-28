@@ -34,7 +34,7 @@ def read_dataframe() -> pd.DataFrame:
         'falseCount', 
         'halfTruecCount', 
         'mostlyTrueCount',
-        'pantsOnFireCunt', 
+        'pantsOnFireCount', 
         'context' # the context (venue / location of the speech or statement).
     ]
     return data
