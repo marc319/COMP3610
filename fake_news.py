@@ -34,13 +34,38 @@ def read_dataframe() -> pd.DataFrame:
         'falseCount', 
         'halfTruecCount', 
         'mostlyTrueCount',
-        'pantsOnFireCount', 
+        'pantsOnFireCunt', 
         'context' # the context (venue / location of the speech or statement).
     ]
     return data
 
 data= read_dataframe()
 data.info()
+
+def TF(value):
+    if value == 'pants-fire':
+        return 0
+    elif value == 'false':
+        return 1
+    elif value == 'barely-true':
+        return 2
+    elif value == 'half-true':
+        return 3
+    elif value == 'mostly-true':
+        return 4
+    else:
+        return 5
+
+data['T/F Rating'] = data['label'].apply(TF)
+
+def sentiment(value):
+    if value >= 3:
+        return 1
+    else:
+        return 0
+
+sentiment1 = data['T/F Rating'].apply(sentiment)
+data['T/F'] = sentiment1
 
 # Preprocessing the data
 #data['statement'] = data['statement'].str.lower()
@@ -51,9 +76,9 @@ data.info()
 #data['label'] = data['label'].str.replace(r'[^\w\s]', '')
 #data['label'] = data['label'].str.replace(r'\s+', ' ')
 
-label_onehot = pd.get_dummies(data['label'].explode()).groupby(level=0).sum()
-data = pd.concat([data, label_onehot], axis=1)
-data.drop('label', axis=1, inplace=True)
+#label_onehot = pd.get_dummies(data['label'].explode()).groupby(level=0).sum()
+#data = pd.concat([data, label_onehot], axis=1)
+#data.drop('label', axis=1, inplace=True)
 print(data)
 
 vectorizer = TfidfVectorizer()
