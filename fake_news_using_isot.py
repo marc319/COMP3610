@@ -11,50 +11,32 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 
-def read_dataframe(url) -> pd.DataFrame:
-    liar_dataset_url = f"https://raw.githubusercontent.com/thiagorainmaker77/liar_dataset/master/{url}"
-    data = pd.read_csv(liar_dataset_url, sep='\t', header=None)
-    #data = pd.read_csv(tsv_file, delimiter='\t', dtype=object)
-    data.fillna("", inplace=True)
-    data.columns = [
-        'id',                # Column 1: the ID of the statement ([ID].json).
-        'label',            
-        'statement',         
-        'subjects',          
-        'speaker',           
-        'speaker_job_title', 
-        'state_info',        
-        'party_affiliation', 
-        'barelyTrueCount', 
-        'falseCount', 
-        'halfTruecCount', 
-        'mostlyTrueCount',
-        'pantsOnFireCount', 
-        'context' # the context (venue / location of the speech or statement).
-    ]
-    return data
+data_fake = pd. read_csv('Fake.csv')
+data_true = pd.read_csv('True.csv')
+data_fake.head()
+data_true.head()
 
-data= read_dataframe("train.tsv")
-data.info()
+data_fake["class"] = 0
+data_true[ 'class']= 1
+data_fake.shape, data_true.shape
 
-def TF(value):
-    if value == 'pants-fire':
-        return 0
-    elif value == 'false':
-        return 0
-    elif value == 'barely-true':
-        return 0
-    elif value == 'half-true':
-        return 1
-    elif value == 'mostly-true':
-        return 1
-    else:
-        return 1
+data_merge = pd.concat([data_fake, data_true], axis = 0)
+data_merge.head (10)
 
-data['T/F'] = data['label'].apply(TF)
+def clean(text):
+    text = text.lower()
+    text = re.sub('\[.*?\]', '', text)
+    text = re.sub("\\W", " ", text)
+    text = re.sub('https?://\S+|www\.\S+', '', text)
+    text = re.sub('<.*?>+', '', text)
+    text = re.sub('[%s]' % re.escape(string.punctuation), '', text)
+    text = re.sub('\n', '', text)
+    text = re.sub('\w*\d\w*', '',text)
+    return text
 
-x = data['statement']
-y = data['T/F']
+data_merge['text'] = data_merge['text'].apply(clean)
+x = data_merge['text']
+y = data_merge['class']
 
 x_train, x_test, y_train, y_test = train_test_split(x,y, test_size= 0.25)
 
@@ -75,17 +57,6 @@ pred_svm = SVM.predict(xv_test)
 SVM.score(xv_test, y_test)
 print(classification_report(y_test, pred_svm))
 
-def clean(text):
-    text = text.lower()
-    text = re.sub('\[.*?\]', '', text)
-    text = re.sub("\\W", " ", text)
-    text = re.sub('https?://\S+|www\.\S+', '', text)
-    text = re.sub('<.*?>+', '', text)
-    text = re.sub('[%s]' % re.escape(string.punctuation), '', text)
-    text = re.sub('\n', '', text)
-    text = re.sub('\w*\d\w*', '',text)
-    return text
-
 def labels(outcome):
     if outcome == 0:
         return "Fake News"
@@ -103,18 +74,17 @@ def testing(news):
     return pred_LR, pred_SVM
     
 
-test_data= read_dataframe("test.tsv")
 LR_array = []
 SVM_array =[]
 
-for x in test_data['statement']:
+for x in data_merge['text']:
     pred_LR, pred_SVM = testing(x)
     LR_array.append(pred_LR)
     SVM_array.append(pred_SVM)
     print ("\n\nLR Prediction: {} \nSVM Prediction: {}".format(labels(pred_LR[0]), labels(pred_SVM[0])))
 
-test_data['LR_Prediction'] = LR_array
-test_data['SVM_Prediction'] = SVM_array
+data_merge['LR_Prediction'] = LR_array
+data_merge['SVM_Prediction'] = SVM_array
 
 
 LR_real_pred=0
@@ -122,17 +92,14 @@ real =0
 LR_fake_pred =0
 fake = 0
 
-for data in test_data['LR_Prediction']:
+for data in data_merge['LR_Prediction']:
     if data == 1:
         LR_real_pred += 1
     if data == 0:
         LR_fake_pred += 1
-                    
-val_data= read_dataframe("valid.tsv")
+            
 
-val_data['T/F'] = val_data['label'].apply(TF)
-
-for data in val_data['T/F']:
+for data in data_merge['class']:
     if data == 1:
         real += 1
     if data == 0:
@@ -159,11 +126,10 @@ fig.tight_layout()
 
 plt.show()
 
-
 SVM_real_pred=0
 SVM_fake_pred =0
 
-for data in test_data['SVM_Prediction']:
+for data in data_merge['SVM_Prediction']:
     if data == 1:
         SVM_real_pred += 1
     if data == 0:
@@ -214,12 +180,10 @@ plt.ylabel("Actual")
 plt.tight_layout()
 plt.show()
 
-
 conf_matrix = pd.crosstab(y_test, pred_lr, rownames=['Actual'], colnames=['Predicted'])
 sns.heatmap(conf_matrix, annot=True, cmap='coolwarm')
 plt.title('Confusion Matrix - Logistic Regression')
 plt.show()
-
 
 
 from sklearn.metrics import roc_curve, auc
@@ -243,7 +207,6 @@ plt.legend(loc="lower right")
 plt.show()
 
 
-
 from sklearn.metrics import precision_recall_curve
 
 precision_lr, recall_lr, _ = precision_recall_curve(y_test, pred_lr)
@@ -258,55 +221,3 @@ plt.ylabel("Precision")
 plt.title("Precision-Recall Curve")
 plt.legend(loc="lower left")
 plt.show()
-
-
-from sklearn.metrics import confusion_matrix, accuracy_score, classification_report, f1_score, precision_score, recall_score, roc_auc_score, roc_curve
-from sklearn.model_selection import train_test_split, KFold
-
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import OneHotEncoder
-
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression
-from sklearn.feature_selection import SelectPercentile, chi2, f_regression, f_classif
-from sklearn.preprocessing import StandardScaler
-from imblearn.over_sampling import SMOTE
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-roc_conf = confusion_matrix(y_test, pred_svm)
-
-print(f1_score(y_test,pred_lr))
-print(f1_score(y_test,pred_svm))
-
-print(precision_score(y_test,pred_lr))
-print(precision_score(y_test,pred_svm))
-
-print(recall_score(y_test,pred_lr))
-print(recall_score(y_test,pred_svm))
-
-print(roc_auc_score(y_test,pred_lr))
-print(roc_auc_score(y_test,pred_svm))
-
-fpr, tpr, thresholds = roc_curve(y_test, pred_lr)
-
-plt.plot(fpr, tpr)
-plt.title("ROC Curve")
-plt.xlabel("False Positive Rate")
-plt.ylabel("True Positive Rate")
-
-fpr, tpr, thresholds = roc_curve(y_test, pred_svm)
-
-plt.plot(fpr, tpr)
-plt.title("ROC Curve")
-plt.xlabel("False Positive Rate")
-plt.ylabel("True Positive Rate")
-
-print("Number transactions X_train dataset: ", x_train.shape)
-print("Number transactions y_train dataset: ", y_train.shape)
-print("Number transactions X_test dataset: ", x_test.shape)
-print("Number transactions y_test dataset: ", y_test.shape)
-
-print("Before OverSampling, counts of label '1': {}".format(sum(y_train==1)))
-print("Before OverSampling, counts of label '0': {} \n".format(sum(y_train==0)))
