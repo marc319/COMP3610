@@ -258,3 +258,55 @@ plt.ylabel("Precision")
 plt.title("Precision-Recall Curve")
 plt.legend(loc="lower left")
 plt.show()
+
+
+from sklearn.metrics import confusion_matrix, accuracy_score, classification_report, f1_score, precision_score, recall_score, roc_auc_score, roc_curve
+from sklearn.model_selection import train_test_split, KFold
+
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import OneHotEncoder
+
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.feature_selection import SelectPercentile, chi2, f_regression, f_classif
+from sklearn.preprocessing import StandardScaler
+from imblearn.over_sampling import SMOTE
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+roc_conf = confusion_matrix(y_test, pred_svm)
+
+print(f1_score(y_test,pred_lr))
+print(f1_score(y_test,pred_svm))
+
+print(precision_score(y_test,pred_lr))
+print(precision_score(y_test,pred_svm))
+
+print(recall_score(y_test,pred_lr))
+print(recall_score(y_test,pred_svm))
+
+print(roc_auc_score(y_test,pred_lr))
+print(roc_auc_score(y_test,pred_svm))
+
+fpr, tpr, thresholds = roc_curve(y_test, pred_lr)
+
+plt.plot(fpr, tpr)
+plt.title("ROC Curve")
+plt.xlabel("False Positive Rate")
+plt.ylabel("True Positive Rate")
+
+fpr, tpr, thresholds = roc_curve(y_test, pred_svm)
+
+plt.plot(fpr, tpr)
+plt.title("ROC Curve")
+plt.xlabel("False Positive Rate")
+plt.ylabel("True Positive Rate")
+
+print("Number transactions X_train dataset: ", x_train.shape)
+print("Number transactions y_train dataset: ", y_train.shape)
+print("Number transactions X_test dataset: ", x_test.shape)
+print("Number transactions y_test dataset: ", y_test.shape)
+
+print("Before OverSampling, counts of label '1': {}".format(sum(y_train==1)))
+print("Before OverSampling, counts of label '0': {} \n".format(sum(y_train==0)))
