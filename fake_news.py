@@ -73,7 +73,23 @@ def preprocess_text(text):
 
 data['processed_text'] = data['text'].apply(preprocess_text)
 
+print(data['processed_text']);
 
+from sklearn.feature_extraction.text import CountVectorizer
+
+# Creating a Bag-Of-Words model using CountVectorizer
+count_vectorizer = CountVectorizer()
+train_countVec = count_vectorizer.fit_transform(data['processed_text'])
+
+print(count_vectorizer.vocabulary_)
+
+from sklearn.feature_extraction.text import TfidfTransformer
+
+tfidf_transformer = TfidfTransformer()
+
+# tokenize, build vocab and encode training data
+train_tfidTransf = tfidf_transformer.fit_transform(train_countVec)
+tfidf_transformer.transform(train_countVec) #tfid_score
 
 
 
