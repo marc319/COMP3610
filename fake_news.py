@@ -91,7 +91,11 @@ tfidf_transformer = TfidfTransformer()
 train_tfidTransf = tfidf_transformer.fit_transform(train_countVec)
 tfidf_transformer.transform(train_countVec) #tfid_score
 
+# for tfid and ngrams
+from sklearn.feature_extraction.text import TfidfVectorizer
 
+tfidf_vectorizer = TfidfVectorizer(stop_words='english', ngram_range=(1,2), use_idf=True, smooth_idf=True)
+tfidf_vectorizer_vectors = tfidf_vectorizer.fit_transform(data['processed_text'].values)
 
 
 
