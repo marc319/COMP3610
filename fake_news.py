@@ -6,10 +6,18 @@ from sklearn.metrics import accuracy_score
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
+import nltk
+nltk.download('punkt')
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from nltk.stem import PorterStemmer
+import string
 
 # Loading the dataset
-def read_dataframe(tsv_file: str) -> pd.DataFrame:
-    data = pd.read_csv(tsv_file, delimiter='\t', dtype=object)
+def read_dataframe() -> pd.DataFrame:
+    liar_dataset_url = "https://raw.githubusercontent.com/thiagorainmaker77/liar_dataset/master/train.tsv"
+    data = pd.read_csv(liar_dataset_url, sep='\t', header=None)
+    #data = pd.read_csv(tsv_file, delimiter='\t', dtype=object)
     data.fillna("", inplace=True)
     data.columns = [
         'id',                # Column 1: the ID of the statement ([ID].json).
@@ -29,17 +37,48 @@ def read_dataframe(tsv_file: str) -> pd.DataFrame:
     ]
     return data
 
-data= read_dataframe(train.tsv)
+data= read_dataframe()
 data.info()
 
-# Preprocessing the data
-data['text'] = data['text'].str.lower()
-data['text'] = data['text'].str.replace(r'[^\w\s]', '')
-data['text'] = data['text'].str.replace(r'\s+', ' ')
+sns.set()
 
-data['label'] = data['label'].str.lower()
-data['label'] = data['label'].str.replace(r'[^\w\s]', '')
-data['label'] = data['label'].str.replace(r'\s+', ' ')
+def getPercent(x):
+        return x * 100
+
+def chartForLabel(input_data: pd.DataFrame, title: str = "LIAR Dataset") -> None:
+    
+    label_freqs = input_data['label'].value_counts(normalize=True) #gets count for each label
+    
+    label_freqs = label_freqs.apply(getPercent) #finds the percentage of the label from the dataset
+    
+    labels = ['pants-fire', 'false', 'barely-true', 'half-true', 'mostly-true', 'true']
+    colors = ['#1F77B4', '#2CA02C', '#D62728', '#9467BD', '#E377C2', '#F7B6D2']
+    
+    label_freqs = label_freqs.reindex(index = labels)
+    axis = label_freqs.plot(kind='bar', figsize=(12, 8), color=colors);
+    axis.set_title(f"Distribution of label values ({title}, sample_size={len(input_data)})", size=20);
+    
+chartForLabel(data) # graph to show the frequency in % of each label in the dataset
+
+# Tokenization, stemming, removing stopwords, lowercasing, and removing punctuations
+stop_words = set(stopwords.words('english'))
+stemmer = PorterStemmer()
+
+def preprocess_text(text):
+    tokens = word_tokenize(text)
+    tokens = [stemmer.stem(word) for word in tokens if word.isalnum()]
+    tokens = [word.lower() for word in tokens]
+    tokens = [word for word in tokens if word not in stop_words]
+    return ' '.join(tokens)
+
+data['processed_text'] = data['text'].apply(preprocess_text)
+
+
+
+
+
+
+
 
 
 # Split the data into training and testing sets- is already split into files: train, test, valid
